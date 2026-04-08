@@ -12,6 +12,10 @@ const ROOTSTREAM_ABI = [
   "event StreamCreated(uint256 indexed streamId, address indexed sender, address indexed recipient, uint256 amountPerInterval, uint256 interval, uint256 lastExecuted)",
 ];
 
+const MULTICALL2_ABI = [
+  "function aggregate(tuple(address target, bytes callData)[] calls) public returns (uint256 blockNumber, bytes[] returnData)",
+];
+
 const STREAM_CREATED_TOPIC = id(
   "StreamCreated(uint256,address,address,uint256,uint256,uint256)"
 );
@@ -56,6 +60,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   }
 
   const fromBlock = Math.max(0, num(userArgs.fromBlock, 0));
+  const multicallAddr = String(userArgs.multicall ?? "").trim();
   const logChunkSize = Math.max(100, num(userArgs.logChunkSize, 2000));
   const maxGetLogsChunks = Math.max(1, num(userArgs.maxGetLogsChunks, 40));
   const maxStreamIdsToCheck = Math.max(1, num(userArgs.maxStreamIdsToCheck, 150));
@@ -63,9 +68,12 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   const scanBatchSize = Math.max(1, num(userArgs.scanBatchSize, 150));
   const startStreamId = Math.max(1, num(userArgs.startStreamId, 1));
   const preferScan = Boolean(userArgs.preferScan);
+  const scanCursorKeySuffix = String(userArgs.scanCursorKey ?? "").trim();
 
   const provider = multiChainProvider.chainId(chainId);
   const c = new Contract(rootstreamAddr, ROOTSTREAM_ABI, provider);
+  const multicall =
+    isAddress(multicallAddr) ? new Contract(multicallAddr, MULTICALL2_ABI, provider) : null;
 
   // Discover candidate stream IDs.
   // Preferred method: StreamCreated logs (efficient, avoids scanning empty mapping slots).
@@ -172,39 +180,137 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
   const balanceBySender = new Map<string, BigNumber>();
 
-  for (const streamId of ids) {
-    let sender: string;
-    let amountPerInterval: BigNumber;
-    let interval: BigNumber;
-    let lastExecuted: BigNumber;
-    let active: boolean;
+  async function getStreamsBatch(streamIds: BigNumber[]) {
+    if (!multicall) return null;
+    const calls = streamIds.map((sid) => ({
+      target: rootstreamAddr,
+      callData: c.interface.encodeFunctionData("streams", [sid]),
+    }));
     try {
-      const row = await c.streams(streamId);
-      sender = row.sender;
-      amountPerInterval = row.amountPerInterval;
-      interval = row.interval;
-      lastExecuted = row.lastExecuted;
-      active = row.active;
+      const [, returnData]: [BigNumber, string[]] = await multicall.aggregate(calls);
+      return returnData.map((data, i) => ({ data, streamId: streamIds[i] }));
     } catch {
-      continue;
+      return null;
     }
+  }
 
-    if (!active || sender === "0x0000000000000000000000000000000000000000") continue;
-    if (amountPerInterval.isZero() || interval.isZero()) continue;
+  async function getBalancesBatch(addresses: string[]) {
+    if (!multicall) return null;
+    const uniq = Array.from(new Set(addresses.map((a) => a.toLowerCase())));
+    const calls = uniq.map((addr) => ({
+      target: rootstreamAddr,
+      callData: c.interface.encodeFunctionData("balances", [addr]),
+    }));
+    try {
+      const [, returnData]: [BigNumber, string[]] = await multicall.aggregate(calls);
+      const out = new Map<string, BigNumber>();
+      for (let i = 0; i < uniq.length; i++) {
+        const [bal] = c.interface.decodeFunctionResult("balances", returnData[i]);
+        out.set(uniq[i], BigNumber.from(bal));
+      }
+      return out;
+    } catch {
+      return null;
+    }
+  }
 
-    const nextDue = lastExecuted.add(interval);
+  // Cursor-based pagination for fairness across runs (independent of discovery).
+  const cursorKey = `dueCursor:${rootstreamAddr.toLowerCase()}:${chainId}${scanCursorKeySuffix ? `:${scanCursorKeySuffix}` : ""}`;
+  const storedCursor = await context.storage.get(cursorKey);
+  const rotatedIds =
+    storedCursor && storedCursor !== ""
+      ? (() => {
+          const start = BigNumber.from(storedCursor);
+          const idx = ids.findIndex((x) => x.eq(start));
+          if (idx <= 0) return ids;
+          return [...ids.slice(idx), ...ids.slice(0, idx)];
+        })()
+      : ids;
+
+  // Persist next cursor for the following run.
+  const nextCursor = rotatedIds.length ? rotatedIds[Math.min(rotatedIds.length - 1, maxStreamIdsToCheck - 1)] : ids[0];
+  if (nextCursor) await context.storage.set(cursorKey, nextCursor.toString());
+
+  // Try multicall batching for streams first; fall back to sequential reads.
+  const slice = rotatedIds.slice(0, maxStreamIdsToCheck);
+  const streamBatch = await getStreamsBatch(slice);
+
+  const streamRows: Array<{
+    streamId: BigNumber;
+    sender: string;
+    amountPerInterval: BigNumber;
+    interval: BigNumber;
+    lastExecuted: BigNumber;
+    active: boolean;
+  }> = [];
+
+  if (streamBatch) {
+    for (const { data, streamId } of streamBatch) {
+      try {
+        const decoded = c.interface.decodeFunctionResult("streams", data);
+        const row = decoded as any;
+        streamRows.push({
+          streamId,
+          sender: String(row.sender),
+          amountPerInterval: BigNumber.from(row.amountPerInterval),
+          interval: BigNumber.from(row.interval),
+          lastExecuted: BigNumber.from(row.lastExecuted),
+          active: Boolean(row.active),
+        });
+      } catch {
+        continue;
+      }
+    }
+  } else {
+    for (const streamId of slice) {
+      try {
+        const row = await c.streams(streamId);
+        streamRows.push({
+          streamId,
+          sender: row.sender,
+          amountPerInterval: row.amountPerInterval,
+          interval: row.interval,
+          lastExecuted: row.lastExecuted,
+          active: row.active,
+        });
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  // Collect candidate senders that are due+active to minimize balance calls.
+  const dueCandidates: typeof streamRows = [];
+  const senders: string[] = [];
+
+  for (const s of streamRows) {
+    if (!s.active || s.sender === "0x0000000000000000000000000000000000000000") continue;
+    if (s.amountPerInterval.isZero() || s.interval.isZero()) continue;
+    const nextDue = s.lastExecuted.add(s.interval);
     if (nowBn.lt(nextDue)) continue;
+    dueCandidates.push(s);
+    senders.push(s.sender);
+  }
 
-    let bal = balanceBySender.get(sender);
-    if (!bal) {
-      bal = (await c.balances(sender)) as BigNumber;
-      balanceBySender.set(sender, bal);
+  const balancesBatch = await getBalancesBatch(senders);
+  if (balancesBatch) {
+    for (const s of dueCandidates) {
+      const bal = balancesBatch.get(s.sender.toLowerCase()) ?? BigNumber.from(0);
+      if (bal.lt(s.amountPerInterval)) continue;
+      due.push({ streamId: s.streamId });
+      if (due.length >= maxExecutionsPerRun) break;
     }
-    if (bal.lt(amountPerInterval)) continue;
-
-    due.push({ streamId });
-
-    if (due.length >= maxExecutionsPerRun) break;
+  } else {
+    for (const s of dueCandidates) {
+      let bal = balanceBySender.get(s.sender);
+      if (!bal) {
+        bal = (await c.balances(s.sender)) as BigNumber;
+        balanceBySender.set(s.sender, bal);
+      }
+      if (bal.lt(s.amountPerInterval)) continue;
+      due.push({ streamId: s.streamId });
+      if (due.length >= maxExecutionsPerRun) break;
+    }
   }
 
   due.sort((a, b) => (a.streamId.lt(b.streamId) ? -1 : a.streamId.gt(b.streamId) ? 1 : 0));

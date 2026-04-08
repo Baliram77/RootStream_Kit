@@ -1,7 +1,7 @@
 "use client";
 
 import toast from "react-hot-toast";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { parseEther } from "viem";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/ui/Card";
@@ -20,6 +20,7 @@ import { useActiveStreamCount, useBalance, useRootstreamContract, useRootstreamW
 import { formatRbtc, secondsToHuman, shortAddr } from "@/services/format";
 import Link from "next/link";
 import { getPublicEnv } from "@/services/env";
+import { useTxToast } from "@/hooks/useTxToast";
 
 export default function DashboardPage() {
   const { address, isConnected } = useAccount();
@@ -49,35 +50,24 @@ export default function DashboardPage() {
   const { address: contractAddress, abi } = useRootstreamContract();
   const write = useRootstreamWrite();
   const receipt = useWaitForTransactionReceipt({ hash: write.data });
-  const txNotifiedRef = useRef<string | undefined>(undefined);
+
+  useTxToast(write.data, receipt, {
+    pending: "Transaction submitted…",
+    success: "Transaction confirmed",
+    reverted: "Transaction reverted. For Execute: wait until interval passes and keep enough prepaid balance.",
+    error: "Transaction failed",
+  });
 
   useEffect(() => {
     const hash = write.data;
     if (!hash || receipt.isPending || receipt.isLoading) return;
-    if (txNotifiedRef.current === hash) return;
-    if (receipt.isSuccess && receipt.data) {
-      txNotifiedRef.current = hash;
-      if (receipt.data.status === "reverted") {
-        toast.error(
-          "Transaction reverted. For Execute: wait until interval passes and keep enough prepaid balance.",
-          { id: "tx", duration: 8000 },
-        );
-        balance.refetch();
-        activeCount.refetch();
-        void refetchChainStreams();
-        void refetchChainPayLogs();
-        return;
-      }
-      toast.success("Transaction confirmed", { id: "tx" });
+    if (receipt.isSuccess || receipt.isError) {
       void refetchChainStreams();
       void refetchChainPayLogs();
       balance.refetch();
       activeCount.refetch();
       void analytics.refetch();
       void envioStreams.refetch();
-    } else if (receipt.isError) {
-      txNotifiedRef.current = hash;
-      toast.error("Transaction failed", { id: "tx" });
     }
   }, [
     write.data,
@@ -85,26 +75,23 @@ export default function DashboardPage() {
     receipt.isLoading,
     receipt.isSuccess,
     receipt.isError,
-    receipt.data,
-    analytics,
-    envioStreams,
     refetchChainStreams,
     refetchChainPayLogs,
     balance,
     activeCount,
+    analytics,
+    envioStreams,
   ]);
 
   async function depositDemo() {
     if (!address) return;
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({
         address: contractAddress,
         abi,
         functionName: "depositFunds",
         value: parseEther("0.0001"),
       });
-      toast.loading("Deposit submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Deposit failed");
     }
@@ -112,9 +99,7 @@ export default function DashboardPage() {
 
   async function cancelStream(streamId: bigint) {
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({ address: contractAddress, abi, functionName: "cancelStream", args: [streamId] });
-      toast.loading("Cancel submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Cancel failed");
     }
@@ -122,9 +107,7 @@ export default function DashboardPage() {
 
   async function executePayment(streamId: bigint) {
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({ address: contractAddress, abi, functionName: "executePayment", args: [streamId] });
-      toast.loading("Execute submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Execute failed");
     }

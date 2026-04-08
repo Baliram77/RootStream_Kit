@@ -6,12 +6,14 @@
   "userArgs": {
     "rootstream": "string",
     "fromBlock": "number",
+    "multicall": "string",
     "logChunkSize": "number",
     "maxGetLogsChunks": "number",
     "maxStreamIdsToCheck": "number",
     "maxExecutionsPerRun": "number",
     "preferScan": "boolean",
     "scanBatchSize": "number",
-    "startStreamId": "number"
+    "startStreamId": "number",
+    "scanCursorKey": "string"
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useClientMounted } from "@/hooks/useClientMounted";
 import { errorMessage } from "@/lib/errorMessage";
 import toast from "react-hot-toast";
@@ -12,6 +12,7 @@ import { Field } from "@/components/Field";
 import { useActiveStreamCount, useBalance, useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
 import { formatRbtc } from "@/services/format";
 import { useUserStreamsOnChain } from "@/hooks/useUserStreamsOnChain";
+import { useTxToast } from "@/hooks/useTxToast";
 
 export default function FundsPage() {
   const { isConnected } = useAccount();
@@ -22,28 +23,22 @@ export default function FundsPage() {
   const { address: contractAddress, abi } = useRootstreamContract();
   const write = useRootstreamWrite();
   const receipt = useWaitForTransactionReceipt({ hash: write.data });
-  const txNotifiedRef = useRef<string | undefined>(undefined);
+
+  useTxToast(write.data, receipt, {
+    pending: "Transaction submitted…",
+    success: "Transaction confirmed",
+    reverted: "Transaction reverted (withdraw requires all streams cancelled).",
+    error: "Transaction failed",
+  });
 
   useEffect(() => {
     const hash = write.data;
     if (!hash || receipt.isPending || receipt.isLoading) return;
-    if (txNotifiedRef.current === hash) return;
-    if (receipt.isSuccess && receipt.data) {
-      txNotifiedRef.current = hash;
-      if (receipt.data.status === "reverted") {
-        toast.error("Transaction reverted (withdraw requires all streams cancelled).", { id: "tx", duration: 7000 });
-        balance.refetch();
-        activeCount.refetch();
-        return;
-      }
-      toast.success("Transaction confirmed", { id: "tx" });
+    if (receipt.isSuccess || receipt.isError) {
       balance.refetch();
       activeCount.refetch();
-    } else if (receipt.isError) {
-      txNotifiedRef.current = hash;
-      toast.error("Transaction failed", { id: "tx" });
     }
-  }, [write.data, receipt.isPending, receipt.isLoading, receipt.isSuccess, receipt.isError, receipt.data, balance, activeCount]);
+  }, [write.data, receipt.isPending, receipt.isLoading, receipt.isSuccess, receipt.isError, balance, activeCount]);
 
   const [depositAmount, setDepositAmount] = useState("0.0001");
   const [withdrawStreamId, setWithdrawStreamId] = useState("");
@@ -75,14 +70,12 @@ export default function FundsPage() {
     if (!isConnected) return toast.error("Connect your wallet first");
     if (errors.depositAmount) return toast.error("Fix deposit amount");
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({
         address: contractAddress,
         abi,
         functionName: "depositFunds",
         value: parseEther(depositAmount),
       });
-      toast.loading("Deposit submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Deposit failed");
     }
@@ -92,14 +85,12 @@ export default function FundsPage() {
     if (!isConnected) return toast.error("Connect your wallet first");
     if (errors.withdrawStreamId) return toast.error("Fix stream id");
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({
         address: contractAddress,
         abi,
         functionName: "withdrawRemainingBalance",
         args: [BigInt(withdrawStreamId)],
       });
-      toast.loading("Withdraw submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Withdraw failed");
     }
