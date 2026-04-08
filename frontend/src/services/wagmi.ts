@@ -1,15 +1,21 @@
 import { createConfig, http } from "wagmi";
-import { injected } from "@wagmi/core";
-import { rootstockTestnet } from "@/services/chains";
+import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors";
+import { getRootstockTestnetChain } from "@/services/chains";
 import { getPublicEnv } from "@/services/env";
 
-const { rpcUrl } = getPublicEnv();
-
-export const wagmiConfig = createConfig({
-  chains: [rootstockTestnet],
-  connectors: [injected()],
-  transports: {
-    [rootstockTestnet.id]: http(rpcUrl),
-  },
-});
+export function getWagmiConfig() {
+  const { rpcUrl, walletConnectProjectId } = getPublicEnv();
+  const rootstockTestnet = getRootstockTestnetChain();
+  return createConfig({
+    chains: [rootstockTestnet],
+    connectors: [
+      injected(),
+      ...(walletConnectProjectId ? [walletConnect({ projectId: walletConnectProjectId })] : []),
+      coinbaseWallet({ appName: "Rootstream Kit" }),
+    ],
+    transports: {
+      [rootstockTestnet.id]: http(rpcUrl),
+    },
+  });
+}
 

@@ -21,7 +21,7 @@ contracts:
 
 networks:
   - id: 31 # rootstock-testnet
-    start_block: 7495313
+    start_block: 7532049
     rpc:
       # Primary RPC for historical sync + head tracking.
       # Note: some providers restrict eth_getLogs to <= 2000 blocks per call.
@@ -32,4 +32,4 @@ networks:
         query_timeout_millis: 60000
     contracts:
       - name: Rootstream
-        address: ${ROOTSTREAM_ADDRESS:-0x067FDf1C8e778fDf1bEFa1DB6debD89491EA9B45}
+        address: ${ROOTSTREAM_ADDRESS:-0x491dd3A88BfdBB066dE19c2ADa32F2D864bf7b6A}

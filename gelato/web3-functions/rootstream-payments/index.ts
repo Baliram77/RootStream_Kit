@@ -170,6 +170,8 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   type Due = { streamId: BigNumber };
   const due: Due[] = [];
 
+  const balanceBySender = new Map<string, BigNumber>();
+
   for (const streamId of ids) {
     let sender: string;
     let amountPerInterval: BigNumber;
@@ -193,10 +195,16 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     const nextDue = lastExecuted.add(interval);
     if (nowBn.lt(nextDue)) continue;
 
-    const bal: BigNumber = await c.balances(sender);
+    let bal = balanceBySender.get(sender);
+    if (!bal) {
+      bal = (await c.balances(sender)) as BigNumber;
+      balanceBySender.set(sender, bal);
+    }
     if (bal.lt(amountPerInterval)) continue;
 
     due.push({ streamId });
+
+    if (due.length >= maxExecutionsPerRun) break;
   }
 
   due.sort((a, b) => (a.streamId.lt(b.streamId) ? -1 : a.streamId.gt(b.streamId) ? 1 : 0));

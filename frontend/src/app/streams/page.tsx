@@ -74,14 +74,15 @@ export default function StreamsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
+              <caption className="sr-only">All streams</caption>
               <thead className="text-xs text-[var(--rs-muted)]">
                 <tr className="border-b border-[var(--rs-border)]">
-                  <th className="py-3">ID</th>
-                  <th className="py-3">Recipient</th>
-                  <th className="py-3">Amount</th>
-                  <th className="py-3">Interval</th>
-                  <th className="py-3">Next</th>
-                  <th className="py-3">Status</th>
+                  <th scope="col" className="py-3">ID</th>
+                  <th scope="col" className="py-3">Recipient</th>
+                  <th scope="col" className="py-3">Amount</th>
+                  <th scope="col" className="py-3">Interval</th>
+                  <th scope="col" className="py-3">Next</th>
+                  <th scope="col" className="py-3">Status</th>
                 </tr>
               </thead>
               <tbody>

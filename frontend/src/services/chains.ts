@@ -1,9 +1,9 @@
 import { defineChain } from "viem";
 import { getPublicEnv } from "@/services/env";
 
-const { rpcUrl } = getPublicEnv();
-
-export const rootstockTestnet = defineChain({
+export function getRootstockTestnetChain() {
+  const { rpcUrl } = getPublicEnv();
+  return defineChain({
   id: 31,
   name: "Rootstock Testnet",
   nativeCurrency: { name: "tRBTC", symbol: "tRBTC", decimals: 18 },
@@ -14,5 +14,6 @@ export const rootstockTestnet = defineChain({
   blockExplorers: {
     default: { name: "Rootstock Explorer", url: "https://explorer.testnet.rootstock.io" },
   },
-});
+  });
+}
 
