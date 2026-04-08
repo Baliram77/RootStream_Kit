@@ -4,14 +4,15 @@
   "version": "1.0.0",
   "description": "Envio HyperIndex for Rootstream (Rootstock Testnet)",
   "scripts": {
-    "codegen": "pnpm envio codegen",
-    "dev": "NODE_OPTIONS=--dns-result-order=ipv4first pnpm envio dev",
-    "start": "NODE_OPTIONS=--dns-result-order=ipv4first pnpm envio start"
+    "codegen": "npx envio codegen",
+    "dev": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first npx envio dev",
+    "start": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first npx envio start"
   },
   "dependencies": {
     "envio": "^2.32.10"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "undici": "^7.24.6"
   }
 }
