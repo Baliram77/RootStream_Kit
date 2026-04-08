@@ -9,7 +9,7 @@ Next.js dashboard for **Rootstream** on **Rootstock Testnet (chain id 31)**. Con
 | Framework | **Next.js 16** (App Router) |
 | Language | **TypeScript** |
 | Styling | **Tailwind CSS v4** (`@import "tailwindcss"` in `src/styles/globals.css`) |
-| Wallet | **wagmi v2**, **viem**, **RainbowKit** (injected connector) |
+| Wallet | **wagmi v2**, **viem**, **RainbowKit** (Injected + Coinbase Wallet + optional WalletConnect) |
 | Indexer API | **Apollo Client v4** → Envio Hasura-style GraphQL (`@apollo/client/react`) |
 | Motion / UX | **Framer Motion**, **react-hot-toast** |
 | Fonts | **Inter** (`@fontsource/inter`) |
@@ -103,12 +103,9 @@ Layout: **`AppShell`** (sidebar + top bar), wallet via RainbowKit **`ConnectButt
 | **`src/services/rootstreamAbi.ts`** | Contract ABI for viem/wagmi |
 | **`src/styles/globals.css`** | Tailwind v4 entry + theme tokens |
 
-## Legacy Pages Router
+## Pages Router
 
-- **`src/pages/_app.tsx`** — Still wraps **Pages** routes with **`Providers`** (mostly redundant with App Router layout; safe to keep for **`pages/api`**).
-- **`src/pages/api/hello.ts`** — Sample API route (**`/api/hello`**).
-
-New UI lives under **`src/app/`**; do not duplicate routes in **`pages/`**.
+This frontend uses the **App Router** under **`src/app/`** only. The legacy **`src/pages/`** tree was removed to avoid confusion and routing drift.
 
 ## Data flow (short)
 
