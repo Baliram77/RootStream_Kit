@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useClientMounted } from "@/hooks/useClientMounted";
 import { errorMessage } from "@/lib/errorMessage";
 import toast from "react-hot-toast";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
+import { useTxToast } from "@/hooks/useTxToast";
 
 export default function CreatePage() {
   const { isConnected } = useAccount();
@@ -38,24 +39,12 @@ export default function CreatePage() {
     return e;
   }, [recipient, amount, interval]);
 
-  const txNotifiedRef = useRef<string | undefined>(undefined);
-
-  useEffect(() => {
-    const hash = write.data;
-    if (!hash || receipt.isPending || receipt.isLoading) return;
-    if (txNotifiedRef.current === hash) return;
-    if (receipt.isSuccess && receipt.data) {
-      txNotifiedRef.current = hash;
-      if (receipt.data.status === "reverted") {
-        toast.error("Transaction reverted.", { id: "tx", duration: 6000 });
-        return;
-      }
-      toast.success("Stream created", { id: "tx" });
-    } else if (receipt.isError) {
-      txNotifiedRef.current = hash;
-      toast.error("Transaction failed", { id: "tx" });
-    }
-  }, [write.data, receipt.isPending, receipt.isLoading, receipt.isSuccess, receipt.isError, receipt.data]);
+  useTxToast(write.data, receipt, {
+    pending: "Create stream submitted…",
+    success: "Stream created",
+    reverted: "Transaction reverted.",
+    error: "Transaction failed",
+  });
 
   async function submit() {
     setTriedSubmit(true);
@@ -63,14 +52,12 @@ export default function CreatePage() {
     if (Object.keys(errors).length) return toast.error("Fix the form errors");
 
     try {
-      txNotifiedRef.current = undefined;
       write.writeContract({
         address: contractAddress,
         abi,
         functionName: "createStream",
         args: [recipient as Address, parseEther(amount), BigInt(interval)],
       });
-      toast.loading("Create stream submitted…", { id: "tx" });
     } catch (e: unknown) {
       toast.error(errorMessage(e) || "Create stream failed");
     }
