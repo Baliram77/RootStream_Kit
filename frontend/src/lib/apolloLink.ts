@@ -2,7 +2,7 @@
  * Fetch with a hard timeout so Apollo does not hang forever if GraphQL is unreachable
  * (common when the browser cannot reach WSL-only localhost, or Envio is stopped).
  */
-export function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit, timeoutMs = 60000): Promise<Response> {
+export function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit, timeoutMs = 15000): Promise<Response> {
   const controller = new AbortController();
   const timeoutReason = new DOMException(
     `Envio GraphQL request exceeded ${timeoutMs / 1000}s`,

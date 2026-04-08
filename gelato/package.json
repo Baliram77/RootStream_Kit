@@ -5,8 +5,8 @@
   "description": "Gelato Web3 Functions for Rootstream recurring payments (Rootstock)",
   "scripts": {
     "build": "npx tsc",
-    "test:w3f": "NODE_OPTIONS=--dns-result-order=ipv4first dotenv -- npx w3f test web3-functions/rootstream-payments/index.ts --chain-id=31 --logs",
-    "test:w3f:public-rpc": "NODE_OPTIONS=--dns-result-order=ipv4first PROVIDER_URLS=https://public-node.testnet.rsk.co npx w3f test web3-functions/rootstream-payments/index.ts --chain-id=31 --logs"
+    "test:w3f": "powershell -NoProfile -Command \"$env:NODE_OPTIONS='--dns-result-order=ipv4first'; npx dotenv -e .env.local -- npx w3f test web3-functions/rootstream-payments/index.ts --chain-id=31 --logs\"",
+    "test:w3f:public-rpc": "powershell -NoProfile -Command \"$env:NODE_OPTIONS='--dns-result-order=ipv4first'; $env:PROVIDER_URLS='https://public-node.testnet.rsk.co'; npx w3f test web3-functions/rootstream-payments/index.ts --chain-id=31 --logs\""
   },
   "dependencies": {
     "@gelatonetwork/web3-functions-sdk": "^2.4.4",

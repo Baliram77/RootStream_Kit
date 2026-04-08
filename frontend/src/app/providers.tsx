@@ -1,18 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { Toaster } from "react-hot-toast";
 import { ApolloProvider } from "@apollo/client/react";
 
-import { wagmiConfig } from "@/services/wagmi";
-import { apolloClient } from "@/lib/apollo";
-
-const queryClient = new QueryClient();
+import { getWagmiConfig } from "@/services/wagmi";
+import { createApolloClient } from "@/lib/apollo";
 
 export function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+  const [apolloClient] = useState(() => createApolloClient());
+  const [wagmiConfig] = useState(() => getWagmiConfig());
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>

@@ -1,6 +1,6 @@
 {
-  "rootstream": "0x067FDf1C8e778fDf1bEFa1DB6debD89491EA9B45",
-  "fromBlock": 7495000,
+  "rootstream": "0x491dd3A88BfdBB066dE19c2ADa32F2D864bf7b6A",
+  "fromBlock": 7532049,
   "logChunkSize": 2000,
   "maxGetLogsChunks": 40,
   "maxStreamIdsToCheck": 150,

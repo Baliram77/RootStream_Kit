@@ -11,12 +11,14 @@ import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { useActiveStreamCount, useBalance, useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
 import { formatRbtc } from "@/services/format";
+import { useUserStreamsOnChain } from "@/hooks/useUserStreamsOnChain";
 
 export default function FundsPage() {
   const { isConnected } = useAccount();
   const mounted = useClientMounted();
   const balance = useBalance();
   const activeCount = useActiveStreamCount();
+  const { streams, isLoading: streamsLoading } = useUserStreamsOnChain();
   const { address: contractAddress, abi } = useRootstreamContract();
   const write = useRootstreamWrite();
   const receipt = useWaitForTransactionReceipt({ hash: write.data });
@@ -44,7 +46,17 @@ export default function FundsPage() {
   }, [write.data, receipt.isPending, receipt.isLoading, receipt.isSuccess, receipt.isError, receipt.data, balance, activeCount]);
 
   const [depositAmount, setDepositAmount] = useState("0.0001");
-  const [withdrawStreamId, setWithdrawStreamId] = useState("1");
+  const [withdrawStreamId, setWithdrawStreamId] = useState("");
+
+  const cancelledOwned = useMemo(() => streams.filter((s) => !s.active), [streams]);
+
+  useEffect(() => {
+    if (!mounted || !isConnected) return;
+    if (withdrawStreamId) return;
+    if (streamsLoading) return;
+    const first = cancelledOwned[0]?.streamId;
+    if (first != null) setWithdrawStreamId(first.toString());
+  }, [mounted, isConnected, withdrawStreamId, streamsLoading, cancelledOwned]);
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
@@ -53,8 +65,8 @@ export default function FundsPage() {
     else if (!Number.isFinite(amt) || amt <= 0) e.depositAmount = "Must be > 0";
 
     const sid = Number(withdrawStreamId);
-    if (!withdrawStreamId) e.withdrawStreamId = "Required";
-    else if (!Number.isFinite(sid) || sid <= 0) e.withdrawStreamId = "Must be > 0";
+    if (!withdrawStreamId) e.withdrawStreamId = "Select a cancelled stream";
+    else if (!Number.isFinite(sid) || sid <= 0) e.withdrawStreamId = "Invalid stream id";
 
     return e;
   }, [depositAmount, withdrawStreamId]);
@@ -141,16 +153,45 @@ export default function FundsPage() {
 
         <Card
           title="Withdraw remaining balance"
-          description="Requires: all your streams cancelled AND activeStreamCount == 0. Provide any cancelled streamId you own."
+          description="Requires: all your streams cancelled AND activeStreamCount == 0. Select any cancelled stream you own."
         >
           <div className="grid gap-4">
-            <Field
-              label="Cancelled streamId"
-              inputMode="numeric"
-              value={withdrawStreamId}
-              onChange={(e) => setWithdrawStreamId(e.target.value)}
-              error={errors.withdrawStreamId}
-            />
+            <label className="block">
+              <div className="flex items-end justify-between gap-3">
+                <span className="text-sm font-medium text-white">Cancelled stream</span>
+              </div>
+              <select
+                className={[
+                  "mt-2 w-full rounded-xl bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm text-white ring-1 outline-none",
+                  errors.withdrawStreamId
+                    ? "ring-[rgba(239,68,68,0.55)] focus:ring-[rgba(239,68,68,0.8)]"
+                    : "ring-[var(--rs-border)] focus:ring-[rgba(255,107,0,0.35)]",
+                ].join(" ")}
+                value={withdrawStreamId}
+                onChange={(e) => setWithdrawStreamId(e.target.value)}
+                disabled={!mounted || !isConnected || write.isPending || streamsLoading || cancelledOwned.length === 0}
+              >
+                <option value="">
+                  {streamsLoading
+                    ? "Loading streams…"
+                    : cancelledOwned.length === 0
+                      ? "No cancelled streams found"
+                      : "Select a cancelled stream"}
+                </option>
+                {cancelledOwned.map((s) => {
+                  const id = s.streamId.toString();
+                  return (
+                    <option key={id} value={id}>
+                      Stream #{id}
+                    </option>
+                  );
+                })}
+              </select>
+              {errors.withdrawStreamId ? <p className="mt-2 text-sm text-red-400">{errors.withdrawStreamId}</p> : null}
+              <p className="mt-2 text-sm text-[var(--rs-muted)]">
+                Withdraw requires all streams cancelled. Cancel them from Dashboard or Streams first.
+              </p>
+            </label>
             <div className="flex justify-end">
               <Button variant="secondary" onClick={withdraw} disabled={write.isPending || !mounted || !isConnected}>
                 Withdraw

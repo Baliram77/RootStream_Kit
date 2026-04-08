@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.20;
 
 /// @title Rootstream
 /// @notice Prepaid recurring native-currency (RBTC on Rootstock) payment streams with optional automation-friendly execution.
@@ -20,6 +20,7 @@ contract Rootstream {
     error InsufficientBalance();
     error ActiveStreamsRemain();
     error NativeTransferFailed();
+    error IntervalTooLarge();
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -77,6 +78,7 @@ contract Rootstream {
     //////////////////////////////////////////////////////////////*/
 
     uint256 private _nextStreamId = 1;
+    uint256 private constant _MAX_INTERVAL = 365 days;
 
     mapping(uint256 => Stream) public streams;
     mapping(address => uint256[]) private _userStreams;
@@ -132,6 +134,7 @@ contract Rootstream {
         if (recipient == address(0)) revert ZeroAddress();
         if (amountPerInterval == 0) revert ZeroAmount();
         if (interval == 0) revert ZeroInterval();
+        if (interval > _MAX_INTERVAL) revert IntervalTooLarge();
 
         streamId = _nextStreamId++;
         uint256 last = block.timestamp;
@@ -217,7 +220,7 @@ contract Rootstream {
     //////////////////////////////////////////////////////////////*/
 
     /// @dev Same accounting as `depositFunds` for plain native transfers.
-    receive() external payable {
+    receive() external payable nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
         uint256 newBal;
         unchecked {

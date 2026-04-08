@@ -78,6 +78,7 @@ export default function HistoryPage() {
                   ? "bg-[rgba(255,107,0,0.12)] text-white ring-[rgba(255,107,0,0.25)]"
                   : "bg-[rgba(255,255,255,0.06)] text-[var(--rs-muted)] ring-[var(--rs-border)] hover:text-white",
               ].join(" ")}
+              aria-pressed={mode === "user"}
               onClick={() => setMode("user")}
             >
               By user
@@ -89,6 +90,7 @@ export default function HistoryPage() {
                   ? "bg-[rgba(255,107,0,0.12)] text-white ring-[rgba(255,107,0,0.25)]"
                   : "bg-[rgba(255,255,255,0.06)] text-[var(--rs-muted)] ring-[var(--rs-border)] hover:text-white",
               ].join(" ")}
+              aria-pressed={mode === "stream"}
               onClick={() => setMode("stream")}
             >
               By stream
@@ -134,13 +136,14 @@ export default function HistoryPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
+              <caption className="sr-only">Payment history</caption>
               <thead className="sticky top-0 bg-[rgba(11,11,11,0.9)] text-xs text-[var(--rs-muted)]">
                 <tr className="border-b border-[var(--rs-border)]">
-                  <th className="py-3">When</th>
-                  <th className="py-3">Stream</th>
-                  <th className="py-3">Recipient</th>
-                  <th className="py-3">Amount</th>
-                  <th className="py-3">Tx</th>
+                  <th scope="col" className="py-3">When</th>
+                  <th scope="col" className="py-3">Stream</th>
+                  <th scope="col" className="py-3">Recipient</th>
+                  <th scope="col" className="py-3">Amount</th>
+                  <th scope="col" className="py-3">Tx</th>
                 </tr>
               </thead>
               <tbody>

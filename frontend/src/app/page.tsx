@@ -18,6 +18,8 @@ import { useUserStreamsOnChain } from "@/hooks/useUserStreamsOnChain";
 import { useChainPaymentLogs } from "@/hooks/useChainPaymentLogs";
 import { useActiveStreamCount, useBalance, useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
 import { formatRbtc, secondsToHuman, shortAddr } from "@/services/format";
+import Link from "next/link";
+import { getPublicEnv } from "@/services/env";
 
 export default function DashboardPage() {
   const { address, isConnected } = useAccount();
@@ -136,7 +138,7 @@ export default function DashboardPage() {
 
   const totalPaid = analytics.data?.Analytics_by_pk?.totalPaid;
   const analyticsLoading = analytics.loading && !analytics.error;
-  const envioGraphqlUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL ?? "http://127.0.0.1:8080/v1/graphql";
+  const { envioGraphqlUrl } = getPublicEnv();
 
   return (
     <div className="space-y-6">
@@ -276,26 +278,27 @@ export default function DashboardPage() {
             title="No streams created yet"
             description="Create your first stream to start recurring payments."
             action={
-              <a
+              <Link
                 href="/create"
                 className="inline-flex rounded-xl bg-[var(--rs-orange)] px-4 py-2 text-sm font-semibold text-black rs-glow"
               >
                 Create Stream
-              </a>
+              </Link>
             }
           />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
+              <caption className="sr-only">Manage your streams</caption>
               <thead className="sticky top-0 bg-[rgba(11,11,11,0.9)] text-xs text-[var(--rs-muted)]">
                 <tr className="border-b border-[var(--rs-border)]">
-                  <th className="py-3">ID</th>
-                  <th className="py-3">Recipient</th>
-                  <th className="py-3">Amount/interval</th>
-                  <th className="py-3">Interval</th>
-                  <th className="py-3">Active</th>
-                  <th className="py-3">Paid</th>
-                  <th className="py-3">Actions</th>
+                  <th scope="col" className="py-3">ID</th>
+                  <th scope="col" className="py-3">Recipient</th>
+                  <th scope="col" className="py-3">Amount/interval</th>
+                  <th scope="col" className="py-3">Interval</th>
+                  <th scope="col" className="py-3">Active</th>
+                  <th scope="col" className="py-3">Paid</th>
+                  <th scope="col" className="py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
