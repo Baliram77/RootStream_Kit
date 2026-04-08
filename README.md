@@ -150,7 +150,7 @@ Open **http://localhost:3000**. If **WSL2** kills **`next-server`** (OOM), use *
 
 ```bash
 cd gelato
-cp .env.example .env
+cp .env.example .env.local
 # PROVIDER_URLS = Rootstock testnet RPC
 npm install && npm run build
 npm run test:w3f
@@ -171,7 +171,7 @@ Values must stay **consistent** across services (same contract address, coherent
 |----------|------------------|----------------|
 | **Contracts** | `contracts/.env` | `PRIVATE_KEY`, `ROOTSTOCK_TESTNET_RPC_URL` |
 | **Envio** | `envio/config.yaml` + shell env | `ROOTSTREAM_ADDRESS`, `ROOTSTOCK_TESTNET_RPC_URL`, plus **`networks[0].start_block`** in YAML |
-| **Gelato** | `gelato/.env` | `PROVIDER_URLS` |
+| **Gelato** | `gelato/.env.local` | `PROVIDER_URLS` |
 | **Frontend** | `frontend/.env.local` | `NEXT_PUBLIC_ROOTSTREAM_ADDRESS`, `NEXT_PUBLIC_ENVIO_GRAPHQL_URL`, `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_ROOTSTREAM_DEPLOY_BLOCK`, … |
 
 Each folder’s **`.env.example`** (where present) is the source of truth for names and comments.

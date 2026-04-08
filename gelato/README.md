@@ -36,7 +36,7 @@ For each candidate ID it checks: stream **active**, **interval elapsed** (using 
 
 ```bash
 cd gelato
-cp .env.example .env
+cp .env.example .env.local
 npm install
 npm run build
 ```
@@ -53,7 +53,7 @@ Edit **`web3-functions/rootstream-payments/userArgs.json`** (or copy from `confi
 npm run test:w3f
 ```
 
-This uses **`dotenv-cli`** to load **`.env`**. The Gelato CLI alone does **not** read `.env`.
+This uses **`dotenv-cli`** to load **`.env.local`**. The Gelato CLI alone does **not** read env files unless you load them yourself.
 
 **`PROVIDER_URLS`** must be a Rootstock testnet JSON-RPC URL (chain **31**), comma-separated if you list several, typically **no quotes** in `.env`:
 
