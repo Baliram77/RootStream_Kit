@@ -79,6 +79,10 @@ export ROOTSTOCK_TESTNET_RPC_URL=https://your-rootstock-testnet-rpc
 
 If you only use **npm**, run the same flows with **`npx envio codegen`**, **`npx envio dev`**, **`npx envio start`** instead of the pnpm scripts below.
 
+### Windows note
+
+Envio’s CLI ships as a platform-specific binary. If you see an error like **“Couldn't find envio binary inside node_modules for windows-x64”**, run Envio inside **WSL (Ubuntu)** or another **Linux/macOS** environment, then point the frontend at that GraphQL URL.
+
 ## Setup and local dev
 
 ```bash
