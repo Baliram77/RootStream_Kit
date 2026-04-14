@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="truncate text-sm font-semibold text-white">Rootstream_kit</span>
               </div>
               <button
-                className="rounded-xl bg-[rgba(255,255,255,0.06)] px-3 py-2 text-xs text-white ring-1 ring-[var(--rs-border)]"
+                className="rounded-xl bg-[rgba(255,255,255,0.06)] px-3 py-2 text-xs text-white ring-1 ring-[var(--rs-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--rs-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rs-bg)]"
                 onClick={() => setMobileOpen(false)}
               >
                 Close

@@ -73,7 +73,7 @@ export default function HistoryPage() {
             </Button>
             <button
               className={[
-                "rounded-xl px-3 py-2 ring-1 transition",
+                "rounded-xl px-3 py-2 ring-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--rs-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rs-bg)]",
                 mode === "user"
                   ? "bg-[rgba(255,107,0,0.12)] text-white ring-[rgba(255,107,0,0.25)]"
                   : "bg-[rgba(255,255,255,0.06)] text-[var(--rs-muted)] ring-[var(--rs-border)] hover:text-white",
@@ -85,7 +85,7 @@ export default function HistoryPage() {
             </button>
             <button
               className={[
-                "rounded-xl px-3 py-2 ring-1 transition",
+                "rounded-xl px-3 py-2 ring-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--rs-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rs-bg)]",
                 mode === "stream"
                   ? "bg-[rgba(255,107,0,0.12)] text-white ring-[rgba(255,107,0,0.25)]"
                   : "bg-[rgba(255,255,255,0.06)] text-[var(--rs-muted)] ring-[var(--rs-border)] hover:text-white",

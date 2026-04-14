@@ -23,8 +23,8 @@ export function Field({
         className={[
           "mt-2 w-full rounded-xl bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm text-white ring-1 outline-none",
           error
-            ? "ring-[rgba(239,68,68,0.55)] focus:ring-[rgba(239,68,68,0.8)]"
-            : "ring-[var(--rs-border)] focus:ring-[rgba(255,107,0,0.35)]",
+            ? "ring-[rgba(239,68,68,0.55)] focus-visible:ring-[rgba(239,68,68,0.8)]"
+            : "ring-[var(--rs-border)] focus-visible:ring-[rgba(255,107,0,0.35)]",
           "placeholder:text-[var(--rs-muted)]",
           props.className ?? "",
         ].join(" ")}
