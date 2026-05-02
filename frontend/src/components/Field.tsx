@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 export function Field({
@@ -12,6 +15,10 @@ export function Field({
   error?: string;
   right?: ReactNode;
 }) {
+  const baseId = useId();
+  const errorId = `${baseId}-error`;
+  const hintId = `${baseId}-hint`;
+
   return (
     <label className="block">
       <div className="flex items-end justify-between gap-3">
@@ -20,6 +27,8 @@ export function Field({
       </div>
       <input
         {...props}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : hint ? hintId : undefined}
         className={[
           "mt-2 w-full rounded-xl bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm text-white ring-1 outline-none",
           error
@@ -30,11 +39,14 @@ export function Field({
         ].join(" ")}
       />
       {error ? (
-        <p className="mt-2 text-sm text-red-400">{error}</p>
+        <p id={errorId} className="mt-2 text-sm text-red-400" role="alert">
+          {error}
+        </p>
       ) : hint ? (
-        <p className="mt-2 text-sm text-[var(--rs-muted)]">{hint}</p>
+        <p id={hintId} className="mt-2 text-sm text-[var(--rs-muted)]">
+          {hint}
+        </p>
       ) : null}
     </label>
   );
 }
-

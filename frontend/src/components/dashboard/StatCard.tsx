@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Card } from "@/components/ui/Card";
+import { AnimatedCard } from "@/components/ui/animated-card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export function StatCard({
@@ -18,7 +18,7 @@ export function StatCard({
   footer?: ReactNode;
 }) {
   return (
-    <Card
+    <AnimatedCard
       title={title}
       description={undefined}
       right={
@@ -35,7 +35,7 @@ export function StatCard({
         )}
       </div>
       {footer ? <div className="mt-3 text-xs text-[var(--rs-muted)]">{footer}</div> : null}
-    </Card>
+    </AnimatedCard>
   );
 }
 

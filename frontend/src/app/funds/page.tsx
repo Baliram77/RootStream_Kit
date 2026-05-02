@@ -6,7 +6,7 @@ import { errorMessage } from "@/lib/errorMessage";
 import toast from "react-hot-toast";
 import { parseEther } from "viem";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
-import { Card } from "@/components/ui/Card";
+import { CardShell } from "@/components/ui/card-shell";
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { useActiveStreamCount, useBalance, useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
@@ -107,7 +107,7 @@ export default function FundsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card title="Your onchain balance" description="Rootstream.balances(msg.sender)">
+        <CardShell title="Your onchain balance" description="Rootstream.balances(msg.sender)">
           {!mounted ? (
             <p className="text-sm text-[var(--rs-muted)]">Loading wallet…</p>
           ) : !isConnected ? (
@@ -123,9 +123,9 @@ export default function FundsPage() {
               </div>
             </div>
           )}
-        </Card>
+        </CardShell>
 
-        <Card title="Deposit" description="Adds RBTC to your prepaid balance">
+        <CardShell title="Deposit" description="Adds RBTC to your prepaid balance">
           <div className="grid gap-4">
             <Field
               label="Amount (RBTC)"
@@ -140,9 +140,9 @@ export default function FundsPage() {
               </Button>
             </div>
           </div>
-        </Card>
+        </CardShell>
 
-        <Card
+        <CardShell
           title="Withdraw remaining balance"
           description="Requires: all your streams cancelled AND activeStreamCount == 0. Select any cancelled stream you own."
         >
@@ -189,7 +189,7 @@ export default function FundsPage() {
               </Button>
             </div>
           </div>
-        </Card>
+        </CardShell>
       </div>
     </div>
   );

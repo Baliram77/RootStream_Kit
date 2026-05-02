@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
-export function Card({
+export function AnimatedCard({
   title,
   description,
   right,
@@ -14,12 +14,14 @@ export function Card({
   right?: ReactNode;
   children: ReactNode;
 }) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      whileHover={{ scale: 1.01 }}
+      whileHover={reduceMotion ? undefined : { scale: 1.01 }}
       className="rs-card rounded-2xl p-5"
     >
       <div className="flex items-start justify-between gap-4">
@@ -33,4 +35,3 @@ export function Card({
     </motion.section>
   );
 }
-

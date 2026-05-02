@@ -36,7 +36,10 @@
     "typescript": "^5"
   },
   "overrides": {
+    "protobufjs": ">=7.5.5",
     "axios": "^1.15.0",
-    "follow-redirects": "^1.15.12"
+    "follow-redirects": "^1.15.12",
+    "postcss": "^8.5.10",
+    "uuid": "^14.0.0"
   }
 }

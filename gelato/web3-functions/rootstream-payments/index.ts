@@ -179,6 +179,8 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
   type Due = { streamId: BigNumber };
   const due: Due[] = [];
+  let decodeErrors = 0;
+  let multicallFailures = 0;
 
   const balanceBySender = new Map<string, BigNumber>();
 
@@ -191,7 +193,9 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     try {
       const [, returnData]: [BigNumber, string[]] = await multicall.aggregate(calls);
       return returnData.map((data, i) => ({ data, streamId: streamIds[i] }));
-    } catch {
+    } catch (e: unknown) {
+      multicallFailures++;
+      console.error("[rootstream-payments] multicall aggregate (streams) failed", { chainId, error: e });
       return null;
     }
   }
@@ -211,7 +215,9 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
         out.set(uniq[i], BigNumber.from(bal));
       }
       return out;
-    } catch {
+    } catch (e: unknown) {
+      multicallFailures++;
+      console.error("[rootstream-payments] multicall aggregate (balances) failed", { chainId, error: e });
       return null;
     }
   }
@@ -259,7 +265,9 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
           lastExecuted: BigNumber.from(row.lastExecuted),
           active: Boolean(row.active),
         });
-      } catch {
+      } catch (e: unknown) {
+        decodeErrors++;
+        console.error("[rootstream-payments] decode streams failed", { chainId, streamId: streamId.toString(), error: e });
         continue;
       }
     }
@@ -275,7 +283,9 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
           lastExecuted: row.lastExecuted,
           active: row.active,
         });
-      } catch {
+      } catch (e: unknown) {
+        decodeErrors++;
+        console.error("[rootstream-payments] read streams failed", { chainId, streamId: streamId.toString(), error: e });
         continue;
       }
     }
@@ -319,9 +329,13 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   const batch = due.slice(0, maxExecutionsPerRun);
 
   if (batch.length === 0) {
+    const diag =
+      decodeErrors || multicallFailures
+        ? ` decodeErrors=${decodeErrors} multicallFailures=${multicallFailures}`
+        : "";
     return {
       canExec: false,
-      message: `No due streams (candidates ${ids.length}, chain ${chainId})`,
+      message: `No due streams (candidates ${ids.length}, chain ${chainId})${diag}`,
     };
   }
 

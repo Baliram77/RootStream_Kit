@@ -28,7 +28,7 @@ function toDateFromBlockTimestamp(ts: number): Date {
   return new Date(ts * 1000);
 }
 
-async function getOrCreateAnalytics(context: any, now: Date): Promise<Analytics> {
+async function getOrCreateAnalytics(context: handlerContext, now: Date): Promise<Analytics> {
   const existing = await context.Analytics.get(ANALYTICS_ID);
   if (existing) return existing;
 
@@ -46,7 +46,7 @@ async function getOrCreateAnalytics(context: any, now: Date): Promise<Analytics>
   return a;
 }
 
-async function getOrCreateUser(context: any, id: string, now: Date): Promise<User> {
+async function getOrCreateUser(context: handlerContext, id: string, now: Date): Promise<User> {
   const existing = await context.User.get(id);
   if (existing) return existing;
 

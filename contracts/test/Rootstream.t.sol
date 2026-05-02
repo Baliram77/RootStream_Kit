@@ -5,11 +5,11 @@ import {Test} from "forge-std/Test.sol";
 import {Rootstream} from "../src/Rootstream.sol";
 
 contract ReentrantRecipient {
-    Rootstream public immutable rs;
+    Rootstream public immutable RS;
     uint256 public streamId;
 
-    constructor(Rootstream rs_) {
-        rs = rs_;
+    constructor(Rootstream rootstream_) {
+        RS = rootstream_;
     }
 
     function setStreamId(uint256 id) external {
@@ -18,7 +18,7 @@ contract ReentrantRecipient {
 
     receive() external payable {
         if (streamId != 0) {
-            rs.executePayment(streamId);
+            RS.executePayment(streamId);
         }
     }
 }

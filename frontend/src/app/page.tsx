@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useEffect, useMemo } from "react";
 import { parseEther } from "viem";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/ui/Card";
+import { CardShell } from "@/components/ui/card-shell";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { IconClock, IconGrid, IconWallet } from "@/components/ui/Icons";
@@ -187,7 +187,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Your funds" description="Onchain prepaid balance (contract)">
+        <CardShell title="Your funds" description="Onchain prepaid balance (contract)">
           {!mounted ? (
             <p className="text-sm text-[var(--rs-muted)]">Loading wallet…</p>
           ) : !isConnected ? (
@@ -208,9 +208,9 @@ export default function DashboardPage() {
               </Button>
             </div>
           )}
-        </Card>
+        </CardShell>
 
-        <Card title="Your streams" description="Contract (immediate)">
+        <CardShell title="Your streams" description="Contract (immediate)">
           {!mounted ? (
             <p className="text-sm text-[var(--rs-muted)]">Loading wallet…</p>
           ) : !isConnected ? (
@@ -229,16 +229,16 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-        </Card>
+        </CardShell>
 
-        <Card title="Address" description="Connected wallet">
+        <CardShell title="Address" description="Connected wallet">
           <div className="text-sm font-mono text-white">
             {!mounted ? "—" : isConnected ? shortAddr(address) : "—"}
           </div>
-        </Card>
+        </CardShell>
       </div>
 
-      <Card
+      <CardShell
         title="Manage streams"
         description="Live from contract · Paid merges Envio + RPC logs (lookback window)"
       >
@@ -327,7 +327,7 @@ export default function DashboardPage() {
             </table>
           </div>
         )}
-      </Card>
+      </CardShell>
     </div>
   );
 }

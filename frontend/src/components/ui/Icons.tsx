@@ -14,6 +14,34 @@ export function IconGrid({ className = "" }: Props) {
   );
 }
 
+/** Distinct from {@link IconStreams} — used for dashboard / summary affordances. */
+export function IconDashboard({ className = "" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M4 13h6V4H4v9Zm10 0h6V4h-6v9ZM4 20h6v-5H4v5Zm10 0h6v-5h-6v5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Distinct from {@link IconDashboard} — list affordance for stream listings. */
+export function IconStreams({ className = "" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M8 6h13M8 12h13M8 18h13M4 6h.01M4 12h.01M4 18h.01"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function IconPlus({ className = "" }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none">

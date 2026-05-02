@@ -6,7 +6,7 @@ import { errorMessage } from "@/lib/errorMessage";
 import toast from "react-hot-toast";
 import { isAddress, parseEther, type Address } from "viem";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
-import { Card } from "@/components/ui/Card";
+import { CardShell } from "@/components/ui/card-shell";
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
 import { useRootstreamContract, useRootstreamWrite } from "@/hooks/useRootstream";
@@ -73,7 +73,7 @@ export default function CreatePage() {
       </div>
 
       <div className="max-w-2xl">
-        <Card title="Stream details" description="RBTC (18 decimals) · interval in seconds">
+        <CardShell title="Stream details" description="RBTC (18 decimals) · interval in seconds">
           <div className="grid gap-4">
             <Field
               label="Recipient address"
@@ -107,7 +107,7 @@ export default function CreatePage() {
               </Button>
             </div>
           </div>
-        </Card>
+        </CardShell>
       </div>
     </div>
   );

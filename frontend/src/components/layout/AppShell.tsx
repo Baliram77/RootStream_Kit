@@ -3,16 +3,26 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
-import { IconClock, IconGrid, IconPlus, IconWallet } from "@/components/ui/Icons";
+import { NAV_ITEMS } from "@/config/nav";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
+
   return (
     <div className="min-h-screen bg-[var(--rs-bg)] text-[var(--rs-text)]">
       <div className="flex">
@@ -49,6 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="truncate text-sm font-semibold text-white">Rootstream_kit</span>
               </div>
               <button
+                type="button"
                 className="rounded-xl bg-[rgba(255,255,255,0.06)] px-3 py-2 text-xs text-white ring-1 ring-[var(--rs-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--rs-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rs-bg)]"
                 onClick={() => setMobileOpen(false)}
               >
@@ -56,7 +67,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
             <div className="px-4">
-              {/* mobile nav */}
               <SidebarMobile onNavigate={() => setMobileOpen(false)} />
             </div>
           </div>
@@ -68,16 +78,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function SidebarMobile({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
-  const items = [
-    { href: "/", label: "Dashboard", icon: IconGrid },
-    { href: "/create", label: "Create Stream", icon: IconPlus },
-    { href: "/streams", label: "Streams", icon: IconGrid },
-    { href: "/history", label: "History", icon: IconClock },
-    { href: "/funds", label: "Funds", icon: IconWallet },
-  ] as const;
   return (
     <nav className="flex flex-col gap-1">
-      {items.map((it) => {
+      {NAV_ITEMS.map((it) => {
         const active = pathname === it.href;
         const Icon = it.icon;
         return (
@@ -100,4 +103,3 @@ function SidebarMobile({ onNavigate }: { onNavigate: () => void }) {
     </nav>
   );
 }
-

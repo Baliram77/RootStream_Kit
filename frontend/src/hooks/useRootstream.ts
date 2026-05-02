@@ -4,10 +4,11 @@ import type { Address } from "viem";
 import { getPublicEnv } from "@/services/env";
 import { ROOTSTREAM_ABI } from "@/services/rootstreamAbi";
 
+const ROOTSTREAM_PUBLIC = getPublicEnv();
+const ROOTSTREAM_CONTRACT_ADDRESS = ROOTSTREAM_PUBLIC.rootstreamAddress as Address;
+
 export function useRootstreamContract() {
-  const { rootstreamAddress } = getPublicEnv();
-  const address = rootstreamAddress as Address;
-  return useMemo(() => ({ address, abi: ROOTSTREAM_ABI }), [address]);
+  return useMemo(() => ({ address: ROOTSTREAM_CONTRACT_ADDRESS, abi: ROOTSTREAM_ABI }), []);
 }
 
 export function useBalance() {
@@ -35,4 +36,3 @@ export function useActiveStreamCount() {
 export function useRootstreamWrite() {
   return useWriteContract();
 }
-

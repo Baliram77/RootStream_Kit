@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useClientMounted } from "@/hooks/useClientMounted";
 import { useAccount } from "wagmi";
-import { Card } from "@/components/ui/Card";
+import { CardShell } from "@/components/ui/card-shell";
 import { Badge } from "@/components/ui/Badge";
 import { useUserStreamsOnChain } from "@/hooks/useUserStreamsOnChain";
 import { formatRbtc, secondsToHuman, shortAddr } from "@/services/format";
@@ -41,7 +41,7 @@ export default function StreamsPage() {
         <p className="text-sm text-[var(--rs-muted)]">Your streams (live RPC).</p>
       </div>
 
-      <Card title="Summary" description="Contract reads">
+      <CardShell title="Summary" description="Contract reads">
         {!mounted ? (
           <p className="text-sm text-[var(--rs-muted)]">Loading wallet…</p>
         ) : !isConnected ? (
@@ -60,9 +60,9 @@ export default function StreamsPage() {
             </div>
           </div>
         )}
-      </Card>
+      </CardShell>
 
-      <Card title="All streams" description="Recipient · Amount · Interval · Status">
+      <CardShell title="All streams" description="Recipient · Amount · Interval · Status">
         {!mounted ? (
           <p className="text-sm text-[var(--rs-muted)]">Loading wallet…</p>
         ) : !isConnected ? (
@@ -104,7 +104,7 @@ export default function StreamsPage() {
             </table>
           </div>
         )}
-      </Card>
+      </CardShell>
     </div>
   );
 }

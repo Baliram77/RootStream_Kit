@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useClientMounted } from "@/hooks/useClientMounted";
 import { useAccount } from "wagmi";
-import { Card } from "@/components/ui/Card";
+import { CardShell } from "@/components/ui/card-shell";
 import { Field } from "@/components/Field";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -56,7 +56,7 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      <Card
+      <CardShell
         title="Payments"
         description={mode === "user" ? "Payments you sent" : "Payments for a specific stream"}
         right={
@@ -163,7 +163,7 @@ export default function HistoryPage() {
             </table>
           </div>
         )}
-      </Card>
+      </CardShell>
     </div>
   );
 }

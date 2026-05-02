@@ -56,7 +56,7 @@ All public vars use the **`NEXT_PUBLIC_`** prefix (embedded in the browser bundl
 | **`NEXT_PUBLIC_ROOTSTREAM_ADDRESS`** | **Yes** for writes / contract reads | `""` | Rootstream contract address (checksum optional). |
 | **`NEXT_PUBLIC_ENVIO_GRAPHQL_URL`** | Recommended | `http://127.0.0.1:8080/v1/graphql` | Envio GraphQL URL **as seen by the browser** (see **WSL + Windows** below). |
 | **`NEXT_PUBLIC_RPC_URL`** | Recommended | `https://public-node.testnet.rsk.co` | JSON-RPC for wagmi/viem and **`eth_getLogs`** (see below). |
-| **`NEXT_PUBLIC_ROOTSTREAM_DEPLOY_BLOCK`** | Optional | `7495313` | Block where your contract was deployed; used as the **from** block for payment log scans. |
+| **`NEXT_PUBLIC_ROOTSTREAM_DEPLOY_BLOCK`** | Optional | `7610060` | Block where your contract was deployed; used as the **from** block for payment log scans. |
 | **`NEXT_PUBLIC_PAYMENT_LOG_LOOKBACK_BLOCKS`** | Optional | `250000` | How far back from the chain head to scan **`PaymentExecuted`** logs (dashboard / history). |
 | **`NEXT_PUBLIC_CHAIN_ID`** | Optional | `31` | Documented for parity; the wired chain is **Rootstock testnet** in `src/services/chains.ts` (**id 31**). |
 

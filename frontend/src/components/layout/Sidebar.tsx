@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/layout/BrandLogo";
-import { IconClock, IconGrid, IconPlus, IconWallet } from "@/components/ui/Icons";
-
-const items = [
-  { href: "/", label: "Dashboard", icon: IconGrid },
-  { href: "/create", label: "Create Stream", icon: IconPlus },
-  { href: "/streams", label: "Streams", icon: IconGrid },
-  { href: "/history", label: "History", icon: IconClock },
-  { href: "/funds", label: "Funds", icon: IconWallet },
-] as const;
+import { NAV_ITEMS } from "@/config/nav";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -32,7 +24,7 @@ export function Sidebar() {
         </div>
 
         <nav className="mt-8 flex flex-col gap-1">
-          {items.map((it) => {
+          {NAV_ITEMS.map((it) => {
             const active = pathname === it.href;
             const Icon = it.icon;
             return (
@@ -61,4 +53,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
