@@ -20,7 +20,7 @@ Without it, **`forge build`** in **`contracts/`** will fail with missing **`forg
 
 | Piece | Role |
 |-------|------|
-| **Contracts** | `Rootstream`: deposit RBTC, create streams, permissionless `executePayment`, cancel, withdraw when idle. |
+| **Contracts** | `Rootstream`: deposit RBTC, create streams, permissionless `executePayment`, cancel, `withdrawRemainingBalance` / **`withdrawAll`** when idle. |
 | **Gelato** | Serverless checker that batches due `executePayment` calls for Automate. |
 | **Envio** | Indexes contract events into `Stream`, `Payment`, `User`, etc., for fast UI queries. |
 | **Frontend** | Next.js 16 app: RainbowKit + wagmi, Apollo → Envio, viem `getLogs` where needed. |
@@ -75,7 +75,9 @@ Install what you need for the paths you will run:
 
 ## End-to-end setup (recommended order)
 
-After a **new deploy**, keep these **in sync everywhere**: contract **address**, **deployment block**, and **Rootstock testnet RPC** (chain id **31**) across **`envio/config.yaml`**, **`frontend/.env.local`**, and **Gelato `userArgs`**. The checked-in examples point at one sample deployment; replace them if you deploy your own contract.
+After a **new deploy**, keep these **in sync everywhere**: contract **address**, **deployment block**, and **Rootstock testnet RPC** (chain id **31**) across **`envio/config.yaml`**, **`frontend/.env.local`**, and **Gelato `userArgs`**. The checked-in **`.env.example`** / **`userArgs.json`** files reference the current sample testnet deployment; replace values when you deploy a new contract.
+
+For **multicall** (optional batched RPC reads in the W3F), see **[gelato/README.md — Canonical Multicall (Rootstock)](gelato/README.md#canonical-multicall-rootstock)** (Multicall3 `0xcA11…`).
 
 ### 1) Deploy the contract
 
@@ -202,7 +204,8 @@ Prefer an RPC provider that documents log support (for example **Rootstock RPC**
 ## Security and scope
 
 - Use **testnet keys and small balances** only. Never commit **`.env`**, **`.env.local`**, or real **mainnet** keys.
-- **Gelato** and **Envio** dependencies may surface **low-severity `npm audit`** noise; follow each README before running **`npm audit fix --force`**.
+- Read **[SECURITY.md](SECURITY.md)** for the historical **`gelato/.env.local`** note (rotation, history / force-push expectations) and for **Gelato `npm audit`** posture.
+- In **`gelato/`**, **`npm audit`** may still list **low-severity `elliptic`** via **`@gelatonetwork/web3-functions-sdk`** → ethers v5; **`npm audit fix --force`** can break the SDK. Use **`npm run audit:moderate`** and the notes in **[gelato/README.md](gelato/README.md)** instead of force-fixing.
 - **Smart contracts are not audited** as part of this kit; use for learning and testnet unless you engage a proper review.
 
 ---
@@ -230,7 +233,7 @@ Run these **in order** to confirm each layer works. You need **Git**, **Foundry*
 | 4 | **`envio/`** | `pnpm dev` | CLI prints a **GraphQL HTTP** URL (often **`…/v1/graphql`**); indexer syncs |
 | 5 | **`frontend/`** | `cp .env.example .env.local` → set **`NEXT_PUBLIC_*`** to match your contract + Envio URL → `npm install` → `npm run dev` | App loads at **http://localhost:3000**; wallet connects on chain **31** |
 | 6 | **`frontend/`** | `npm run build` | Production build completes |
-| 7 (optional) | **`gelato/`** | `cp .env.example .env` → align **`userArgs.json`** → `npm install` → `npm run build` → `npm run test:w3f` | W3F run completes (see [gelato/README.md](gelato/README.md)) |
+| 7 (optional) | **`gelato/`** | `cp .env.example .env.local` → align **`userArgs.json`** → `npm install` → `npm run build` → `npm run test:w3f` | W3F run completes (see [gelato/README.md](gelato/README.md)) |
 
 **Partial stack:** Steps **2** + **5** alone can work if you point the frontend at an **already deployed** contract and a **reachable RPC**; **Envio** (steps 3–4) is required for **GraphQL-backed** analytics and some tables to populate. **Gelato** (step 7) is optional for UI verification.
 
