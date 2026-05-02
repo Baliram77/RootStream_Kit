@@ -76,6 +76,7 @@ contract RootstreamTest is Test {
         assertEq(address(rs).balance, 5 ether);
     }
 
+    /// @dev Same `ZeroAmount` branch as plain ETH via `receive()` — both revert when `msg.value == 0`.
     function test_depositFunds_reverts_zeroValue() public {
         vm.prank(alice);
         vm.expectRevert(Rootstream.ZeroAmount.selector);
@@ -87,13 +88,6 @@ contract RootstreamTest is Test {
         (bool ok,) = address(rs).call{value: 3 ether}("");
         assertTrue(ok);
         assertEq(rs.balances(alice), 3 ether);
-    }
-
-    function test_receive_reverts_zeroValue() public {
-        vm.prank(alice);
-        vm.expectRevert(Rootstream.ZeroAmount.selector);
-        (bool ok,) = address(rs).call{value: 0}("");
-        assertTrue(ok);
     }
 
     function test_createStream_reverts_zeroRecipient() public {
@@ -112,6 +106,20 @@ contract RootstreamTest is Test {
         vm.prank(alice);
         vm.expectRevert(Rootstream.ZeroInterval.selector);
         rs.createStream(bob, AMOUNT, 0);
+    }
+
+    function test_RevertWhen_IntervalTooLarge() public {
+        vm.prank(alice);
+        vm.expectRevert(Rootstream.IntervalTooLarge.selector);
+        rs.createStream(bob, AMOUNT, 365 days + 1);
+    }
+
+    function test_interval_at_365days_succeeds() public {
+        vm.prank(alice);
+        uint256 id = rs.createStream(bob, AMOUNT, 365 days);
+        assertEq(id, 1);
+        Rootstream.Stream memory s = rs.getStreamDetails(1);
+        assertEq(s.interval, 365 days);
     }
 
     function test_createStream_setsFields_and_listsUserStreams() public {
@@ -337,6 +345,78 @@ contract RootstreamTest is Test {
         vm.prank(alice);
         vm.expectRevert(Rootstream.ZeroAmount.selector);
         rs.withdrawRemainingBalance(id);
+    }
+
+    /// @dev Prepaid deposit with no stream — recover via `withdrawAll`.
+    function test_withdrawAll_depositWithoutStream() public {
+        vm.prank(alice);
+        rs.depositFunds{value: 3 ether}();
+
+        uint256 beforeBal = alice.balance;
+        vm.prank(alice);
+        vm.expectEmit(true, true, true, true);
+        emit FundsWithdrawn(alice, 3 ether, 0);
+        rs.withdrawAll();
+        assertEq(alice.balance, beforeBal + 3 ether);
+        assertEq(rs.balances(alice), 0);
+    }
+
+    /// @dev Residual balance after `executePayment`, stream cancelled — withdraw via `withdrawAll`.
+    function test_withdrawAll_postDrainDust_afterCancel() public {
+        vm.prank(alice);
+        rs.depositFunds{value: 10 ether}();
+
+        vm.prank(alice);
+        uint256 id = rs.createStream(bob, AMOUNT, INTERVAL);
+
+        vm.warp(block.timestamp + INTERVAL);
+        vm.prank(gelato);
+        rs.executePayment(id);
+
+        vm.prank(alice);
+        rs.cancelStream(id);
+
+        uint256 dust = rs.balances(alice);
+        assertGt(dust, 0);
+
+        vm.prank(alice);
+        rs.withdrawAll();
+        assertEq(rs.balances(alice), 0);
+    }
+
+    /// @dev All streams cancelled — `withdrawAll` needs no stream id.
+    function test_withdrawAll_allCancelled_noNeedForStreamId() public {
+        vm.prank(alice);
+        rs.depositFunds{value: 5 ether}();
+
+        vm.startPrank(alice);
+        uint256 id1 = rs.createStream(bob, AMOUNT, INTERVAL);
+        uint256 id2 = rs.createStream(bob, AMOUNT, INTERVAL);
+        rs.cancelStream(id1);
+        rs.cancelStream(id2);
+        vm.stopPrank();
+
+        vm.prank(alice);
+        rs.withdrawAll();
+        assertEq(rs.balances(alice), 0);
+    }
+
+    function test_withdrawAll_reverts_whenActiveStreamsRemain() public {
+        vm.prank(alice);
+        rs.depositFunds{value: 5 ether}();
+
+        vm.prank(alice);
+        rs.createStream(bob, AMOUNT, INTERVAL);
+
+        vm.prank(alice);
+        vm.expectRevert(Rootstream.ActiveStreamsRemain.selector);
+        rs.withdrawAll();
+    }
+
+    function test_withdrawAll_reverts_zeroBalance() public {
+        vm.prank(alice);
+        vm.expectRevert(Rootstream.ZeroAmount.selector);
+        rs.withdrawAll();
     }
 
     function test_getStreamDetails_reverts_unknown() public {

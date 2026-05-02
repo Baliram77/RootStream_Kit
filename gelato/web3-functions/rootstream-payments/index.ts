@@ -60,6 +60,8 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   }
 
   const fromBlock = Math.max(0, num(userArgs.fromBlock, 0));
+  // Multicall3 at 0xcA11… on Rootstock exposes Multicall2-compatible `aggregate((address,bytes)[])`.
+  // See gelato/README.md — wrong address only wastes Gelato gas (off-chain reads).
   const multicallAddr = String(userArgs.multicall ?? "").trim();
   const logChunkSize = Math.max(100, num(userArgs.logChunkSize, 2000));
   const maxGetLogsChunks = Math.max(1, num(userArgs.maxGetLogsChunks, 40));

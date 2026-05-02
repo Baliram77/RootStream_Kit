@@ -67,9 +67,17 @@ contract Rootstream {
     uint256 private _reentrancyStatus = _NOT_ENTERED;
 
     modifier nonReentrant() {
+        _nonReentrantBefore();
+        _;
+        _nonReentrantAfter();
+    }
+
+    function _nonReentrantBefore() private {
         if (_reentrancyStatus == _ENTERED) revert ReentrancyGuardReentrantCall();
         _reentrancyStatus = _ENTERED;
-        _;
+    }
+
+    function _nonReentrantAfter() private {
         _reentrancyStatus = _NOT_ENTERED;
     }
 
@@ -93,10 +101,7 @@ contract Rootstream {
     /// @notice Credit RBTC/native to the caller’s prepaid balance.
     function depositFunds() external payable nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
-        uint256 newBal;
-        unchecked {
-            newBal = balances[msg.sender] + msg.value;
-        }
+        uint256 newBal = balances[msg.sender] + msg.value;
         balances[msg.sender] = newBal;
         emit FundsDeposited(msg.sender, msg.value, newBal);
     }
@@ -114,6 +119,19 @@ contract Rootstream {
 
         balances[msg.sender] = 0;
         emit FundsWithdrawn(msg.sender, amount, streamId);
+
+        (bool ok,) = msg.sender.call{value: amount}("");
+        if (!ok) revert NativeTransferFailed();
+    }
+
+    /// @notice Withdraw your full prepaid balance when you have no active streams. Unlike `withdrawRemainingBalance`, no cancelled stream id is required. `FundsWithdrawn.streamId` is set to 0.
+    function withdrawAll() external nonReentrant {
+        if (activeStreamCount[msg.sender] != 0) revert ActiveStreamsRemain();
+        uint256 amount = balances[msg.sender];
+        if (amount == 0) revert ZeroAmount();
+
+        balances[msg.sender] = 0;
+        emit FundsWithdrawn(msg.sender, amount, 0);
 
         (bool ok,) = msg.sender.call{value: amount}("");
         if (!ok) revert NativeTransferFailed();
@@ -149,9 +167,7 @@ contract Rootstream {
         });
 
         _userStreams[msg.sender].push(streamId);
-        unchecked {
-            ++activeStreamCount[msg.sender];
-        }
+        ++activeStreamCount[msg.sender];
 
         emit StreamCreated(streamId, msg.sender, recipient, amountPerInterval, interval, last);
     }
@@ -162,9 +178,7 @@ contract Rootstream {
         if (s.sender == address(0)) revert UnknownStream();
         if (!s.active) revert StreamNotActive();
 
-        unchecked {
-            if (block.timestamp < s.lastExecuted + s.interval) revert IntervalNotElapsed();
-        }
+        if (block.timestamp < s.lastExecuted + s.interval) revert IntervalNotElapsed();
 
         address sender_ = s.sender;
         address recipient_ = s.recipient;
@@ -172,10 +186,8 @@ contract Rootstream {
 
         if (balances[sender_] < amount) revert InsufficientBalance();
 
-        unchecked {
-            s.lastExecuted = block.timestamp;
-            balances[sender_] -= amount;
-        }
+        s.lastExecuted = block.timestamp;
+        balances[sender_] -= amount;
 
         emit PaymentExecuted(streamId, sender_, recipient_, amount, block.timestamp);
 
@@ -191,9 +203,7 @@ contract Rootstream {
         if (!s.active) revert StreamNotActive();
 
         s.active = false;
-        unchecked {
-            --activeStreamCount[msg.sender];
-        }
+        --activeStreamCount[msg.sender];
 
         emit StreamCancelled(streamId, msg.sender);
     }
@@ -202,15 +212,18 @@ contract Rootstream {
                                 VIEWS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice All stream ids ever created for `user` (including cancelled); order matches creation order.
     function getUserStreams(address user) external view returns (uint256[] memory) {
         return _userStreams[user];
     }
 
+    /// @notice Full `Stream` struct for `streamId`; reverts with `UnknownStream` if never created.
     function getStreamDetails(uint256 streamId) external view returns (Stream memory) {
         if (streams[streamId].sender == address(0)) revert UnknownStream();
         return streams[streamId];
     }
 
+    /// @notice Next id that will be assigned by `createStream` (monotonic; starts at 1).
     function nextStreamId() external view returns (uint256) {
         return _nextStreamId;
     }
@@ -222,10 +235,7 @@ contract Rootstream {
     /// @dev Same accounting as `depositFunds` for plain native transfers.
     receive() external payable nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
-        uint256 newBal;
-        unchecked {
-            newBal = balances[msg.sender] + msg.value;
-        }
+        uint256 newBal = balances[msg.sender] + msg.value;
         balances[msg.sender] = newBal;
         emit FundsDeposited(msg.sender, msg.value, newBal);
     }

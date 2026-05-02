@@ -101,14 +101,30 @@ Follow the CLI prompts, then in the **Gelato app** create an **Automate Web3 Fun
 | `preferScan` | boolean | If **true**, skip logs and use **scan** mode with storage cursor |
 | `scanBatchSize` | number | How many IDs to advance per run in **scan** mode |
 | `startStreamId` | number | Initial lower bound for the scan cursor when storage is empty |
+| `multicall` | string | **Optional.** Contract with **`aggregate((address target, bytes callData)[])`** (Multicall2-compatible). Wrong address does not risk user funds; it only breaks batched reads or wastes Gelato gas. See **Canonical Multicall (Rootstock)** below. Use **`""`** for sequential RPC reads. |
+
+## Canonical Multicall (Rootstock)
+
+Use **[Multicall3](https://github.com/mds1/multicall)** at the vanity **`0xcA11…cA11`** address on Rootstock: it implements **`aggregate(Call[])`** compatible with this Web3 Function ([`Multicall3.sol`](https://github.com/mds1/multicall/blob/main/src/Multicall3.sol)).
+
+| Network | Chain ID | Multicall3 (`aggregate`) | Explorer |
+|--------|----------|---------------------------|----------|
+| Rootstock Testnet | `31` | `0xcA11bde05977b3631167028862bE2a173976CA11` | [contract](https://explorer.testnet.rootstock.io/address/0xcA11bde05977b3631167028862bE2a173976CA11) |
+| Rootstock Mainnet | `30` | `0xcA11bde05977b3631167028862bE2a173976CA11` | [contract](https://explorer.rootstock.io/address/0xcA11bde05977b3631167028862bE2a173976CA11) |
+
+Confirm bytecode on the explorer before production.
 
 ## `npm audit` (ethers v5 / Gelato SDK)
 
-**`package.json` overrides** include **`ws@7.5.10`** so the old **`ws` 7.5.x DoS advisory** (high) is patched; **`npm audit`** should only report **low** findings from **[GHSA-848j-6mx2-7j84](https://github.com/advisories/GHSA-848j-6mx2-7j84)** on **`elliptic`**, pulled in via **`@gelatonetwork/web3-functions-sdk`** → **`@ethersproject/*`**. There is still **no clean npm fix** for that chain without breaking **`w3f`**.
+The Web3 Function lists **`@ethersproject/*`** explicitly so imports remain stable if the Gelato SDK tree changes.
 
-**Do not run `npm audit fix --force`** — npm may install incompatible **`@ethersproject/*`** versions and break the SDK.
+**`package.json` overrides** pin **`protobufjs`**, **`axios`**, **`follow-redirects`**, **`uuid@^14`**, **`ws@7.5.10`**, **`dockerode@^4.0.12`**, etc., so known transitive issues are patched **without** **`npm audit fix --force`**.
 
-Practical options: **accept the residual low findings** until Gelato moves off ethers v5, or gate CI with **`npm audit --audit-level=moderate`** (or **`high`**) if you only want to fail on severities you care about.
+**`npm audit`** may still report **low** **`elliptic`** (**[GHSA-848j-6mx2-7j84](https://github.com/advisories/GHSA-848j-6mx2-7j84)**) via **`@gelatonetwork/web3-functions-sdk`** → **`@ethersproject/*`**. **No safe npm-wide fix** exists until Gelato ships a different stack.
+
+**Do not run `npm audit fix --force`** — it can break **`w3f`**.
+
+**Accepted mitigation:** document upstream **`elliptic`** as low severity; run **`npm run audit:moderate`** in CI; upgrade **`@gelatonetwork/web3-functions-sdk`** when available. See root **`SECURITY.md`**.
 
 ## Security notes
 
