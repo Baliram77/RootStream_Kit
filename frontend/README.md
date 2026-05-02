@@ -92,7 +92,7 @@ Layout: **`AppShell`** (sidebar + top bar), wallet via RainbowKit **`ConnectButt
 | **`src/app/`** | App Router: `layout.tsx`, `providers.tsx`, `page.tsx` and route folders |
 | **`src/app/providers.tsx`** | Wagmi, React Query, **ApolloProvider** (`@apollo/client/react`), RainbowKit, Toaster |
 | **`src/components/layout/`** | `AppShell`, `Sidebar`, `Topbar` |
-| **`src/components/ui/`** | `Card`, `Skeleton`, `EmptyState`, badges, icons |
+| **`src/components/ui/`** | `CardShell`, `AnimatedCard`, `Skeleton`, `EmptyState`, badges, icons |
 | **`src/components/dashboard/`** | `DashboardHero` (home marketing strip), `StatCard` |
 | **`src/hooks/`** | `useRootstream`, `useEnvioApollo`, `useUserStreamsOnChain`, `useChainPaymentLogs`, etc. |
 | **`src/lib/apollo.ts`** | Apollo client + **HttpLink** to **`NEXT_PUBLIC_ENVIO_GRAPHQL_URL`** |

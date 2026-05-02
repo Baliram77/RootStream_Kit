@@ -20,7 +20,7 @@ Solidity contracts for **Rootstream**: prepaid **native-token** (RBTC on Rootsto
 
 4. **Cancellation** — Only the stream sender can `cancelStream(streamId)`. Active streams are counted per sender via `activeStreamCount`.
 
-5. **Withdrawal** — `withdrawRemainingBalance(streamId)` returns the sender’s remaining prepaid balance **only if** all their streams are cancelled (`activeStreamCount[sender] == 0`). The given `streamId` must be one of the sender’s **inactive** streams (authorization hook).
+5. **Withdrawal** — With **no** active streams (`activeStreamCount[sender] == 0`), the sender may **`withdrawAll()`** (no stream id) or **`withdrawRemainingBalance(streamId)`** when they still know an **inactive** stream id (authorization hook). Both return the full remaining prepaid balance.
 
 ## Events (for indexing)
 
